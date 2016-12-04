@@ -104,7 +104,7 @@ class PoController extends Controller
 
             return $this->render('create', [
                 'model' => $model,
-                'modelPoItem' => (empty($modelPoItem)) ? [new PoItem] : $modelPoItem//verifica si lo que se crea esta vacio
+                'modelPoItem' => (empty($modelPoItem)) ? [new PoItem] : $modelPoItem//verifica si esta vacio el PoItem de lo contrario envía lo que ha leído
             ]);
         }
     }
@@ -117,13 +117,23 @@ class PoController extends Controller
      */
     public function actionUpdate($id)
     {
+        //recupera todos los Po almacenados
         $model = $this->findModel($id);
+
+        //recupera todos los PoItem almacenados
+        //$modelPoItem = PoItem::find()->select('id')->where(['id'=>$id])->asArray()->all();
+        //$modelPoItem = ArrayHelper::getColumn($modelPoItem,'id');
+        //$modelPoItem = PoItem::findAll(['id'=>$modelPoItem]);
+        //$modelPoItem = (empty($modelPoItem)) ? [new PoItem] : $modelPoItem;
+
+
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
                 'model' => $model,
+                'modelPoItem' => (empty($modelPoItem)) ? [new PoItem] : $modelPoItem,
             ]);
         }
     }
