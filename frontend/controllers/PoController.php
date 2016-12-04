@@ -121,7 +121,7 @@ class PoController extends Controller
         //recupera todos los Po almacenados
         $model = $this->findModel($id);
 
-        $modelPoItem =  PoItem::find()->where(['po_id' => $id])->all();
+        $modelPoItem =  PoItem::find()->where(['po_id' => $id])->all();// get values by actual Id
 
         //recupera todos los PoItem almacenados
         //$modelPoItem = PoItem::find()->select('id')->where(['id'=>$id])->asArray()->all();
