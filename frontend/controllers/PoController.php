@@ -120,15 +120,51 @@ class PoController extends Controller
         //recupera todos los Po almacenados
         $model = $this->findModel($id);
 
+        $modelPoItem =  PoItem::find()->all();
+
         //recupera todos los PoItem almacenados
         //$modelPoItem = PoItem::find()->select('id')->where(['id'=>$id])->asArray()->all();
         //$modelPoItem = ArrayHelper::getColumn($modelPoItem,'id');
         //$modelPoItem = PoItem::findAll(['id'=>$modelPoItem]);
         //$modelPoItem = (empty($modelPoItem)) ? [new PoItem] : $modelPoItem;
 
-
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+
+            $oldIDs = ArrayHelper::map($modelPoItem, 'id', 'id');
+            $modelPoItem = Model::createMultiple(PoItem::classname(),$modelPoItem);
+            Model::loadMultiple($modelPoItem, Yii::$app->request->post());
+            $deletedIDs = array_diff($oldIDs, array_filter(ArrayHelper::map($modelPoItem, 'id', 'id')));
+
+            //validaciones
+            $valid = $model->validate();
+            $valid = Model::validateMultiple($modelPoItem) && $valid;
+
+            if ($valid) {
+              $transaction = \Yii::$app->db->beginTransaction();
+              try {
+                  if ($flag = $model->save(false)) {
+                      if (! empty($deletedIDs)) {
+                          PoItem::deleteAll(['id' => $deletedIDs]);
+                      }
+                      foreach ($modelPoItem as $modelPoItem) {
+                          $modelPoItem->po_id = $model->id;
+                          if (! ($flag = $modelPoItem->save(false))) {
+                              $transaction->rollBack();
+                              break;
+                          }
+                      }
+                  }
+                  if ($flag) {
+                      $transaction->commit();
+                      return $this->redirect(['view', 'id' => $modelCustomer->id]);
+                  }
+              } catch (Exception $e) {
+                  $transaction->rollBack();
+              }
+          }
+
+
+
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
