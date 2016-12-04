@@ -10,6 +10,7 @@ use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use frontend\models\PoItem;
 use common\models\Model;
+use yii\helpers\ArrayHelper;
 /**
  * PoController implements the CRUD actions for Po model.
  */
@@ -120,7 +121,7 @@ class PoController extends Controller
         //recupera todos los Po almacenados
         $model = $this->findModel($id);
 
-        $modelPoItem =  PoItem::find()->all();
+        $modelPoItem =  PoItem::find()->where(['po_id' => $id])->all();
 
         //recupera todos los PoItem almacenados
         //$modelPoItem = PoItem::find()->select('id')->where(['id'=>$id])->asArray()->all();
@@ -134,6 +135,7 @@ class PoController extends Controller
             $modelPoItem = Model::createMultiple(PoItem::classname(),$modelPoItem);
             Model::loadMultiple($modelPoItem, Yii::$app->request->post());
             $deletedIDs = array_diff($oldIDs, array_filter(ArrayHelper::map($modelPoItem, 'id', 'id')));
+
 
             //validaciones
             $valid = $model->validate();
@@ -156,16 +158,13 @@ class PoController extends Controller
                   }
                   if ($flag) {
                       $transaction->commit();
-                      return $this->redirect(['view', 'id' => $modelCustomer->id]);
+                      return $this->redirect(['view', 'id' => $model->id]);
                   }
               } catch (Exception $e) {
                   $transaction->rollBack();
               }
           }
 
-
-
-            return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('update', [
                 'model' => $model,
